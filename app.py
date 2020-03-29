@@ -12,6 +12,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -19,9 +20,17 @@ from forms import *
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
+
+# Connect to a local postgresql database. 
+# Configuration for DB connection in config.py
+# Make sure the local database exists. 
+# If not, create it using createdb "name"
 db = SQLAlchemy(app)
 
-# TODO: connect to a local postgresql database
+# on first run, initialize migration tracking with flask db init
+# Create initial version of the schema from "starter code" with flask db migrate and flsak db upgrade.
+# Then create new tables and new columns and migrate/upgrade schema
+migrate = Migrate(app, db)
 
 #----------------------------------------------------------------------------#
 # Models.
@@ -36,6 +45,7 @@ class Venue(db.Model):
     state = db.Column(db.String(120))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
+    genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
