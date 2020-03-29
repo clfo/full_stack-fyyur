@@ -8,7 +8,6 @@ DEBUG = True
 
 # Connect to the database
 
-
 # IMPLEMENT DATABASE URL
 SQLALCHEMY_DATABASE_URI = 'postgres://clement.fortin@localhost:5432/fyyur'
 

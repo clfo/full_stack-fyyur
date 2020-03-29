@@ -21,9 +21,9 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 
-# Connect to a local postgresql database. 
+# Connect to a local postgresql database
 # Configuration for DB connection in config.py
-# Make sure the local database exists. 
+# Make sure the local database exists
 # If not, create it using createdb "name"
 db = SQLAlchemy(app)
 
@@ -37,7 +37,7 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 
 class Venue(db.Model):
-    __tablename__ = 'Venue'
+    __tablename__ = 'venue'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -48,11 +48,14 @@ class Venue(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    show = db.relationship('Show', cascade='all, delete, delete-orphan', backref="Venue")
 
+    def __repr__(self):
+      return f'<Venue {self.name}, {self.city},{self.state}'
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
-    __tablename__ = 'Artist'
+    __tablename__ = 'artist'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -62,8 +65,37 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    show = db.relationship('Show', cascade='all, delete, delete-orphan', backref="Artist")
+
+    def __repr__(self):
+      return f'<Artist {self.name}, {self.city},{self.state}'
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+
+#----------------------------------------------------------------------------#
+# Many-to-many relationship between Artist and Venue using db.table
+#----------------------------------------------------------------------------#
+
+venues_artists = db.Table('venues_artists',
+    db.Column('venue_id', db.Integer, db.ForeignKey('venue.id'), primary_key=True),
+    db.Column('artist_id', db.Integer, db.ForeignKey('artist.id'), primary_key=True)
+)
+
+#----------------------------------------------------------------------------#
+# One-to-many relationship between Artist and Show as well as between Venue and Show.
+#----------------------------------------------------------------------------#
+
+class Show(db.Model):
+    __tablename__ = 'show'
+
+    id = db.Column(db.Integer, primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), nullable=False)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+
+    def __repr__(self):
+      return f'<Show {Artist.query.get(artist_id).name}, {Venue.query.get(venue_id).name}, {Venue.query.get(venue_id).city}, {Venue.query.get(venue_id).state}, {self.start_time}'
+
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
