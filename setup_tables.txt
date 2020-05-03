@@ -37,6 +37,41 @@ VALUES
 
     );
 
+INSERT INTO artist (
+    name, city, state,
+    address, phone,
+    website,
+    seeking_venue, seeking_description,
+    image_link,
+    facebook_link)
+VALUES
+    (
+        'The Musical Hop', 'San Francisco', 'CA',
+        '1015 Folsom Street','123-123-1234',
+        'https://www.themusicalhop.com',
+        true, 'We are on the lookout for a local artist to play every two weeks. Please call us.',
+        'https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60',
+        'https://www.facebook.com/TheMusicalHop'
+    ),
+    (
+        'The Dueling Pianos Bar', 'New York', 'NY',
+        '335 Delancey Street','914-003-1132',
+        'https://www.theduelingpianos.com',
+        false,NULL,
+        'https://images.unsplash.com/photo-1497032205916-ac775f0649ae?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80',
+        'https://www.facebook.com/theduelingpianos'
+
+    ),
+    (
+        'Park Square Live Music & Coffee', 'San Francisco', 'CA',
+        '34 Whiskey Moore Ave','415-000-1234',
+        'https://www.parksquarelivemusicandcoffee.com',
+        false,NULL,
+        'https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80',
+        'https://www.facebook.com/ParkSquareLiveMusicAndCoffee'
+
+    );
+
 INSERT INTO genre (
     genre, venue_id)
 VALUES
@@ -44,3 +79,21 @@ VALUES
     ('Classical',2),( 'R&B',2),( 'Hip-Hop',2),
     ('Classical',3),( 'Folk',3),( 'Jazz',3),( 'Rock n Roll',3)
     ;
+
+INSERT INTO show (venue_id,artist_id,start_time)
+VALUES
+    (
+      1,4,"2019-05-21T21:30:00.000Z"
+    ),
+    (
+      3,5,"2019-06-15T23:00:00.000Z"
+    ),
+    (
+      3,6,"2035-04-01T20:00:00.000Z"
+    ),
+    (
+      3,6,"2035-04-08T20:00:00.000Z"
+    ),
+    (
+      3,6,"2035-04-15T20:00:00.000Z"
+    );

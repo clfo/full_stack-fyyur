@@ -58,7 +58,7 @@ class Venue(db.Model):
     genres = db.relationship('Genre', cascade='all, delete, delete-orphan', backref="Venue")
 
     def __repr__(self):
-      return f'<Venue {self.name}, {self.city},{self.state}'
+      return f'>Venue: {self.name}, {self.city}, {self.state}'
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
@@ -69,13 +69,15 @@ class Artist(db.Model):
     city = db.Column(db.String(120), nullable=False)
     state = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120), nullable=False)
-    genres = db.relationship('Genre', cascade='all, delete, delete-orphan', backref="Artist")
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean,nullable=False, default=False)
+    seeking_description = db.Column(db.String(500))
+    genres = db.relationship('Genre', cascade='all, delete, delete-orphan', backref="Artist")
     show = db.relationship('Show', cascade='all, delete, delete-orphan', backref="Artist")
 
     def __repr__(self):
-      return f'<Artist {self.name}, {self.city},{self.state}'
+      return f'>Artist: {self.name}, {self.city}, {self.state}'
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -101,7 +103,7 @@ class Show(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
 
     def __repr__(self):
-      return f'<Show {Artist.query.get(artist_id).name}, {Venue.query.get(venue_id).name}, {Venue.query.get(venue_id).city}, {Venue.query.get(venue_id).state}, {self.start_time}'
+      return f'>Show: {Artist.query.get(artist_id).name}, {Venue.query.get(venue_id).name}, {Venue.query.get(venue_id).city}, {Venue.query.get(venue_id).state}, {self.start_time}'
 
 
 #----------------------------------------------------------------------------#
@@ -117,7 +119,7 @@ class Genre(db.Model):
     venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=True)
 
     def __repr__(self):
-      return f'<Genre {self.genre}, {Artist.query.get(artist_id).name}, {Venue.query.get(venue_id).name}'
+      return f'>Genre: {self.genre}, {Artist.query.get(artist_id).name}, {Venue.query.get(venue_id).name}'
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
@@ -170,29 +172,32 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+  # implement search on artists with partial string search. Ensure it is case-insensitive.
   # search for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
 
   response = {'count':0, 'data':[]}
   term = request.form.get('search_term','')
-#      request.form.get('search_term', '')
-  search_results = Venue.query.filter(Venue.name.ilike(term)).all()
-  result_count = Venue.query.filter(Venue.name.ilike(term)).count()
+  search_results = Venue.query.filter(Venue.name.ilike(f'%{term}%')).all()
+  result_count = len(search_results)
+  print(search_results)
   print(result_count)
   if result_count != 0:
-    for res in search_results:
+    for venue in search_results:
+      response['count'] = result_count
       data = {}
-      response['count'] += response['count']
-      data['id']= res.id
-      data['name']= res.name
-      data['count']= result_count
+      data['id']= venue.id
+      data['name']= venue.name
+      data['num_upcoming_shows']= Show.query.filter_by(venue_id = venue.id).count()
+      print(data)
       response['data'].append(data)
+      print(response)
   else:
     response['name'] = 'No result was found'
 
-  
-    app.logger.info('results: ', result_count, 'results: ', response.name)
+  app.logger.info('results: %i', result_count)
+  print(len(response['data']))
+ 
   # response={
   #   "count": 1,
   #   "data": [{
@@ -201,16 +206,17 @@ def search_venues():
   #     "num_upcoming_shows": 0,
   #   }]
   # }
-  return render_template('pages/search_venues.html', results=jsonify(response), search_term = term)
+  return render_template('pages/search_venues.html', results=response, search_term = term)
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  venues = Venue.query.filter_by(venue_id = venue_id).order_by('id').all()
+  venue_data = Venue.query.get(venue_id)
   # TODO: join query
-  data = []
-  venue_data = {}
+  # data = {}
+  data = {'genres':[], 'past_shows':[], 'upcoming_shows':[]}
+  genres = []
   past_shows = []
   past_shows_d = {}
   upcoming_shows = []
@@ -218,7 +224,6 @@ def show_venue(venue_id):
   for venue in venues:
     venue_data['id'] = venue.id
     venue_data['name'] = venue.name
-    venue_data['genres'] = venue.genres
     venue_data['address'] = venue.address
     venue_data['city'] = venue.city
     venue_data['state'] = venue.state
@@ -228,21 +233,10 @@ def show_venue(venue_id):
 #    venue_data['seeking_talent'] = venue.seeking_talent
 #    venue_data['seeking_description'] = venue.seeking_description
     venue_data['image_link'] = venue.image_link
-   
-      #   "id": 1,
-  #   "name": "The Musical Hop",
-  #   "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-  #   "address": "1015 Folsom Street",
-  #   "city": "San Francisco",
-  #   "state": "CA",
-  #   "phone": "123-123-1234",
-  #   "website": "https://www.themusicalhop.com",
-  #   "facebook_link": "https://www.facebook.com/TheMusicalHop",
-  #   "seeking_talent": True,
-  #   "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-  #   "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
 
-    venue_shows = Venue.query.join(Show.id).filter_by(venue_id=venue.id).all()
+    venue_data['genres'] = Genre.query.filter_by(venue_id = venue.id).all()
+
+    venue_shows = Show.query.filter_by(venue_id = venue.id).all()
     for venue_show in venue_shows:
       if venue_show.start_time < datetime.datetime.now():
         past_shows_d['artist_id'] = venue_show.artist_id
@@ -250,12 +244,13 @@ def show_venue(venue_id):
         past_shows_d['artist_image_link'] = venue_show.artist_id
         past_shows.append(past_shows_d)
       else:
+        # upcoming_shows = Show.query.filter_by(venue_id = venue.id).all()
         upcoming_shows = Venue.query.filter_by(venue_id = venue_id).order_by('id').all()
       past_shows_count = past_shows.len()
       upcoming_shows_count = past_shows.len()
-    data.append(venue)
+    venue_data.append(venue)
 
-  return render_template('pages/show_venue.html', venue=data)
+  return render_template('pages/show_venue.html', venue=venue_data)
 
   # data1={
   #   "id": 1,
